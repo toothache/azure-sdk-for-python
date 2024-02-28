@@ -35,6 +35,7 @@ def analyze_custom_documents(custom_model_id):
         os.path.join(os.path.abspath(__file__), "..", "./sample_forms/forms/Form_1.jpg")
     )
     # [START analyze_custom_documents]
+    from prettytable import PrettyTable
     from azure.core.credentials import AzureKeyCredential
     from azure.ai.documentintelligence import DocumentIntelligenceClient
     from azure.ai.documentintelligence.models import AnalyzeResult
@@ -65,30 +66,38 @@ def analyze_custom_documents(custom_model_id):
                         f"......found field of type '{field.type}' with value '{field_value}' and with confidence {field.confidence}"
                     )
 
-    # iterate over tables, lines, and selection marks on each page
-    for page in result.pages:
-        print(f"\nLines found on page {page.page_number}")
-        if page.lines:
-            for line in page.lines:
-                print(f"...Line '{line.content}'")
-        if page.words:
-            for word in page.words:
-                print(f"...Word '{word.content}' has a confidence of {word.confidence}")
-        if page.selection_marks:
-            print(f"\nSelection marks found on page {page.page_number}")
-            for selection_mark in page.selection_marks:
-                print(
-                    f"...Selection mark is '{selection_mark.state}' and has a confidence of {selection_mark.confidence}"
-                )
+        # Extract table cell values
+        SYMBOL_OF_TABLE_TYPE = "array"
+        KEY_OF_VALUE_OBJECT = "valueObject"
+        KEY_OF_CELL_CONTENT = "content"
 
-    if result.tables:
-        for i, table in enumerate(result.tables):
-            print(f"\nTable {i + 1} can be found on page:")
-            if table.bounding_regions:
-                for region in table.bounding_regions:
-                    print(f"...{region.page_number}")
-            for cell in table.cells:
-                print(f"...Cell[{cell.row_index}][{cell.column_index}] has text '{cell.content}'")
+        for idx, doc in enumerate(result.documents):
+            print(f"\n{len(doc.fields)} fields found on Document {idx}")
+            for fieldName, fieldValue in doc.fields.items():
+                # "LabeledTable" is the table field name which you labeled. Table cell information store as array in documnet field.
+                if (
+                    fieldName == "LabeledTable"
+                    and fieldValue.type == SYMBOL_OF_TABLE_TYPE
+                    and fieldValue.value_array
+                ):
+                    colNames = []
+                    sampleObj = fieldValue.value_array[0]
+                    if KEY_OF_VALUE_OBJECT in sampleObj:
+                        colNames = sampleObj[KEY_OF_VALUE_OBJECT].keys()
+                    print(f"------Extracting Table Cell Values------")
+                    table = PrettyTable(colNames)
+                    for obj in fieldValue.value_array:
+                        if KEY_OF_VALUE_OBJECT in obj:
+                            valueObj = obj[KEY_OF_VALUE_OBJECT]
+                            extractValueByColName = lambda key: (
+                                valueObj[key].get(KEY_OF_CELL_CONTENT)
+                                if key in valueObj
+                                else None
+                            )
+                            rowData = list(map(extractValueByColName, colNames))
+                            table.add_row(rowData)
+                    print(table)
+
     print("-----------------------------------")
     # [END analyze_custom_documents]
 
