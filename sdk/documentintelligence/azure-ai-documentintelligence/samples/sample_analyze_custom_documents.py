@@ -84,7 +84,7 @@ def analyze_custom_documents(custom_model_id):
                     sampleObj = fieldValue.value_array[0]
                     if KEY_OF_VALUE_OBJECT in sampleObj:
                         colNames = sampleObj[KEY_OF_VALUE_OBJECT].keys()
-                    print(f"------Extracting Table Cell Values------")
+                    print("------Extracting Table Cell Values------")
                     table = PrettyTable(colNames)
                     for obj in fieldValue.value_array:
                         if KEY_OF_VALUE_OBJECT in obj:
