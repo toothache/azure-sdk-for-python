@@ -16,11 +16,11 @@ DESCRIPTION:
 def print_table(header_names, table_data):
     """Print a two-dimensional array like a table.
 
-    Baseed on provided column header names and two two-dimensional array data, print the strings like table.
+    Based on provided column header names and two two-dimensional array data, print the strings like table.
 
     Args:
-        header_names: An array of string, it's the column header names eg. ["name", "gender", "age"]
-        table_data: A two-dimensional array, they're the table data [["Mike", "M", 25], ["John", "M", 19], ["Lily", "F", 23]]
+        header_names: An array of string, it's the column header names.  e.g. ["name", "gender", "age"]
+        table_data: A two-dimensional array, they're the table data.  e.g. [["Mike", "M", 25], ["John", "M", 19], ["Lily", "F", 23]]
     Return: None
         It's will print the string like table in output window. e.g.
          Name    Gender    Age
