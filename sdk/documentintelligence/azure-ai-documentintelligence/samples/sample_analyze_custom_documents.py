@@ -35,10 +35,10 @@ def analyze_custom_documents(custom_model_id):
         os.path.join(os.path.abspath(__file__), "..", "./sample_forms/forms/Form_1.jpg")
     )
     # [START analyze_custom_documents]
-    from prettytable import PrettyTable
     from azure.core.credentials import AzureKeyCredential
     from azure.ai.documentintelligence import DocumentIntelligenceClient
     from azure.ai.documentintelligence.models import AnalyzeResult
+    from helper import utils
 
     endpoint = os.environ["DOCUMENTINTELLIGENCE_ENDPOINT"]
     key = os.environ["DOCUMENTINTELLIGENCE_API_KEY"]
@@ -71,34 +71,34 @@ def analyze_custom_documents(custom_model_id):
         KEY_OF_VALUE_OBJECT = "valueObject"
         KEY_OF_CELL_CONTENT = "content"
 
-        for idx, doc in enumerate(result.documents):
-            print(f"\n{len(doc.fields)} fields found on Document {idx}")
-            for fieldName, fieldValue in doc.fields.items():
-                # "LabeledTable" is the table field name which you labeled. Table cell information store as array in documnet field.
+        for doc in result.documents:
+            for field_name, field_value in doc.fields.items():
+                # "MaintenanceLog" is the table field name which you labeled. Table cell information store as array in documnet field.
                 if (
-                    fieldName == "LabeledTable"
-                    and fieldValue.type == SYMBOL_OF_TABLE_TYPE
-                    and fieldValue.value_array
+                    field_name == "MaintenanceLog"
+                    and field_value.type == SYMBOL_OF_TABLE_TYPE
+                    and field_value.value_array
                 ):
-                    colNames = []
-                    sampleObj = fieldValue.value_array[0]
-                    if KEY_OF_VALUE_OBJECT in sampleObj:
-                        colNames = sampleObj[KEY_OF_VALUE_OBJECT].keys()
-                    print("------Extracting Table Cell Values------")
-                    table = PrettyTable(colNames)
-                    for obj in fieldValue.value_array:
+                    col_names = []
+                    sample_obj = field_value.value_array[0]
+                    if KEY_OF_VALUE_OBJECT in sample_obj:
+                        col_names = list(sample_obj[KEY_OF_VALUE_OBJECT].keys())
+                    print("----Extracting Table Cell Values----")
+                    table_rows = []
+                    for obj in field_value.value_array:
                         if KEY_OF_VALUE_OBJECT in obj:
-                            valueObj = obj[KEY_OF_VALUE_OBJECT]
-                            extractValueByColName = lambda key: (
-                                valueObj[key].get(KEY_OF_CELL_CONTENT)
-                                if key in valueObj
-                                else None
+                            value_obj = obj[KEY_OF_VALUE_OBJECT]
+                            extract_value_by_col_name = lambda key: (
+                                value_obj[key].get(KEY_OF_CELL_CONTENT)
+                                if key in value_obj
+                                and KEY_OF_CELL_CONTENT in value_obj[key]
+                                else "None"
                             )
-                            rowData = list(map(extractValueByColName, colNames))
-                            table.add_row(rowData)
-                    print(table)
+                            row_data = list(map(extract_value_by_col_name, col_names))
+                            table_rows.append(row_data)
+                    utils.print_table(col_names, table_rows)
 
-    print("-----------------------------------")
+    print("------------------------------------")
     # [END analyze_custom_documents]
 
 
